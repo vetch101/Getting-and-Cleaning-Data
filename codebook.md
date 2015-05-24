@@ -11,10 +11,13 @@ tidy_data.txt file into a data.table, dt, outputs it to the RStudio environment,
 and returns it to the console or any assigned variable.
 
 The summarized dataset consists of 180 observations of 81 variables. 
-These values are consolidated from a larger dataset of sensor data collected 
-from the mobile devices from 30 subjects while in the process of completing 
-6 different activities: WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, 
-STANDING, LAYING.
+These values are consolidated from a larger dataset of multi-variate time series
+sensor data collected from the mobile devices from 30 subjects while in the 
+process of completing 6 different activities: WALKING, WALKING_UPSTAIRS, 
+WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING.
+
+Each observation is a row on the table, with the mean of each of the variables
+consolidated per Activity and Subject in each column.
 
 A full description of the original data is available at the site where the data 
 was obtained: 
