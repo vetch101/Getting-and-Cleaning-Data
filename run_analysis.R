@@ -11,130 +11,114 @@
 ## data set with the average of each variable for each activity
 ## and each subject
 
-## init sets up the environment
+
+## init function sets up the environment
 
 init <- function() {
+  
   ## Import libraries
   library(data.table)
   library(dplyr)
   library(tidyr)
-  
-  ## Download and read data
+
+  ## Download and read file from internet
   getFile()
-  getData()
+  
 }
 
-## getFile pulls down the file and extracts the data from the archive
+
+## getFile function downloads file and extracts the data from the archive
 
 getFile <- function() {
 
-      if(!file.exists(file.path(getwd(),"data"))) {
-        dir.create(file.path(getwd(),"data"))
-      }
-      fileUrl <- paste(c("https://d396qusza40orc.cloudfront.net",
-          "/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"), collapse = "")
-      filename <- file.path(getwd(), "data", "UCIHARDataset.zip", 
-            collapse = "")
-      unzipped <- file.path(getwd(), "data", "UCI HAR Dataset")
-      if(!file.exists(filename)) {
-        download.file(fileUrl, filename, method = "curl")
-      }
-      if(!file.exists(unzipped)) {
-        unzip(filename, exdir = file.path(getwd(), "data"))
-      }
-      setwd(file.path("data", "UCI HAR Dataset"))
-}
-
-## getData creates the variables we work with
-
-getData <- function() {
+  ## Confirm correct working directory or stop
   
-  dt <- data.table(read.table("features.txt"))
-  features <- as.character(dt[[2]])
-  assign("features", features, envir = globalenv())
-  
-  dirs <- list.dirs(recursive = FALSE)
-  
-  for (i in 1:length(dirs)) {
-    files <- list.files(dirs[i])
-    for (j in 1:length(files))  {
-      if(length(grep(".txt", files[j])>0)) {
-        varname <- files[j]
-        varname <- gsub(".txt", "", varname)        
-        file <- file.path(dirs[i],files[j])
-        dt <- data.table(read.table(file))
-        dt <- tidyTable(dt, varname)
-        assign(varname, dt, envir = globalenv())      
-      }
-    }
+  if(!file.exists("run_analysis.R")) {
+    print("Please set working directory to root folder")
+    stop()
   }
   
+  ## Check for existence of UCIData directory - if not, create it
+  
+  if(!file.exists(file.path("UCIData"))) {
+    dir.create(file.path("UCIData"))
+  }
+  
+  ## Check for UCIDataset.zip - if not, download it
+  
+  filename <- file.path("UCIData", "UCIHARDataset.zip", 
+        collapse = "")
+  
+  if(!file.exists(filename)) {    
+    fileUrl <- paste(c("https://d396qusza40orc.cloudfront.net",
+        "/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"), collapse = "")
+    download.file(fileUrl, filename, method = "curl")
+  }
+  
+  ## Check if archive has been unzipped - if not, unzip
+  
+  unzipped <- file.path("UCIData", "UCI HAR Dataset")
+  if(!file.exists(unzipped)) {
+    unzip(filename, exdir = file.path("UCIData"))
+  }
+  
+  ## Set working directory to unzipped UCI HAR Dataset directory
+  
+  setwd(file.path("UCIData", "UCI HAR Dataset"))
+  
 }
 
-## tidyTable adds ids to the rows and labels columns for merging
 
-tidyTable <- function(dt, varname) {
-  if (length(grep("y", varname)) > 0) {
+## tidyTable function adds ids to the rows and labels columns for merging
+
+tidyTable <- function(dt, tablename) {
+  
+  ## Inputs: dt - data.table, tablename - shortened name of data.table file
+  ## Outputs: dt - modified data.table
+  
+  ## Rename V1 in data.table to appropriate name based on whether 
+  ## data.table is Activity or Subject dataset
+  
+  if (length(grep("y", tablename)) > 0) {
     setnames(dt, "V1", "Activity")    
-  } else if (length(grep("subject", varname)) > 0) {
+  } else if (length(grep("subject", tablename)) > 0) {
     setnames(dt, "V1", "Subject")
   }
   
-  if (length(grep("train", varname)) > 0) {
+  ## Add correct id column to data.table, depending on whether data.table is 
+  ## train or test data
+  
+  if (length(grep("train", tablename)) > 0) {
     dt <- mutate(dt, id = seq(1:nrow(dt)))
-  } else if (length(grep("test", varname)) > 0) {
+  } else if (length(grep("test", tablename)) > 0) {
     lastRow <- (nrow(dt)+7352)
     dt <- mutate(dt, id = 7353:lastRow)
-  }  
-  setkey(dt, id)
-  dt
-}
-
-## mergeData function merges the training and test sets into one data set
-
-mergeData <- function() {
-  
-  test <- mergeTables(y_test, "Test")
-  train <- mergeTables(y_train, "Train")
-  data <- rbind(data = train, data = test)
-  
-  
-  
-  data <- renameHeaders(data)
-  data <- renameActivities(data)
-  
-  data
-  
-}
-
-## mergeTables merges all the Testing and Training tables
-
-mergeTables <- function(dt, testOrTrain) {
-  
-  if(testOrTrain == "Test") {
-    
-    dt <- dt %>%
-      merge(subject_test) %>%
-      merge(X_test) 
-    
-  } else if(testOrTrain == "Train") {
-    
-    dt <- dt %>%
-      merge(subject_train) %>%
-      merge(X_train)
   }
   
-  dt
+  ## Set id as key for data.table for merging purposes
   
+  setkey(dt, id)
+  
+  ## Return modified data.table
+  
+  return(dt)
 }
 
-# renameHeaders renames the headers based on the features data table
 
-renameHeaders <- function(dt) {
+## renameHeaders function renames the headers based on the features vector
+
+renameHeaders <- function(dt, x) {
   
-  x <- features
+  ## Inputs: dt - data.table, x - character vector of all features
+  ## Outputs: dt - modified data.table
+    
+  ## Step through vector x
   
   for(i in 1:length(x)) {
+    
+    ## Check whether feature is either mean or std measurement
+    ## If so, update first letter to Time. or FFT. (Fast Fourier Transform)
+    
     if(length(grep("mean", x[i])) > 0 | length(grep("std", x[i])) > 0) {      
       firstLetter <- substr(x[i], 1, 1)
       if(firstLetter == "t") {
@@ -144,6 +128,9 @@ renameHeaders <- function(dt) {
         nextLetters <- substr(x[i], 2, nchar(x[i]))
         x[i] <- paste0("FFT.", nextLetters, collapse = "")
       }
+      
+      ## Replace unclear terms in the column headers
+      
       x[i] <- sub("mean()", "mean", x[i], fixed = TRUE)
       x[i] <- sub("std()", "std", x[i], fixed = TRUE)
       x[i] <- sub("Freq()", "Freq", x[i], fixed = TRUE)
@@ -154,60 +141,178 @@ renameHeaders <- function(dt) {
       x[i] <- sub("Acc", "Accelerometer.", x[i])
       x[i] <- sub("Jerk", "Jerk.", x[i])
       x[i] <- sub("Mag", "Magnitude.", x[i])
+      
+      ## Tidy column name output
+      
       x[i] <- gsub("-", ".", x[i])
       x[i] <- gsub("..", ".", x[i], fixed = TRUE)
+      
     }    
   }
   
-  features <- x
+  ## Set headers of data.table to correct names
   
-  headers <- c("id", "Activity", "Subject", features)
+  headers <- c("id", "Activity", "Subject", x)
   dt <- setnames(dt, colnames(dt), headers)
-  dt
+  
+  ## Return modified data.table
+  
+  return(dt)
+  
 }
 
-# renameActivities renames the activities based on their description
+
+## renameActivities function renames activities based on their description
 
 renameActivities <- function(dt) {
   
+  ## Inputs: dt - data.table
+  ## Outputs: dt - modified data.table
+  
+  ## Order the data.table
+  
   dt <- arrange(dt, Activity, Subject)
   
-  activities <- c("WALKING", "WALKING_UPSTAIRS", "WALKING_DOWNSTAIRS", "SITTING", "STANDING", "LAYING")
+  ## Create vector of activities names
+  
+  activities <- c("WALKING", "WALKING_UPSTAIRS", "WALKING_DOWNSTAIRS",
+                  "SITTING", "STANDING", "LAYING")
+  
+  ## Step through activities vector renaming Activity in data.table
   
   for (i in 1:6) {
     dt$Activity[dt$Activity == i] <- activities[i]
   }
   
-  dt
+  ## Return modified data.table
+  
+  return(dt)
   
 }
 
 
-# summarizeData extracts the mean and std values from the measurements
+## summarizeData extracts mean and std measurements based on column headers
 
 summarizeData <- function(dt) {
 
-  mean <- grep("mean", colnames(dt))
-  std <- grep("std", colnames(dt))
+  ## Inputs: dt - data.table
+  ## Outputs: dt - summarized data.table
   
+  ## Select relevant columns
+  
+  mean <- grep("mean", colnames(dt))
+  std <- grep("std", colnames(dt))  
   dt <- select(dt, 1:3, mean, std)
+  
+  ## Summarize data by Activity and Subject
   
   dt <- dt %>%
     group_by(Activity, Subject) %>%
     summarise_each(funs(mean))
   
+  ## Remove redundant id column
+  
   dt[, id:=NULL]
   
-  dt
+  ## Return summarized data.table
+  
+  return(dt)
+  
 }
 
-# Main function
+
+## runAnalysis is the main function that begins the script
 
 runAnalysis <- function() {
+  
+  ## Setup clean up
+  
   wd <- getwd()
+  prompt <- "Delete UCIData directory after script runs? (Y/N)"
+  clean <- readline(prompt)
+  
+  ## Initialize the environment
+  
   init()
-  allData <- mergeData()  
+  
+  ## Step through UCIData directory and files to create data.tables for merging
+  ## Create X_train, X_test, y_train, y_test, subject_train, subject_test 
+  ## data.tables
+  
+  dirs <- list.dirs(recursive = FALSE)
+  
+  for (i in 1:length(dirs)) {
+    files <- list.files(dirs[i])
+    for (j in 1:length(files))  {
+      if(length(grep(".txt", files[j])>0)) {
+        
+        ## Set tablename to shortened filename
+        
+        tablename <- files[j]
+        tablename <- gsub(".txt", "", tablename)
+        
+        ## Read file to data.table and send to function tidyTable to be tidied
+              
+        file <- file.path(dirs[i],files[j])
+        dt <- data.table(read.table(file))
+        dt <- tidyTable(dt, tablename)
+        
+        ## Assign data.table to the appropriate name in the current environment
+        
+        assign(tablename, dt)      
+      }
+    }
+  }
+  
+  ## Create the features character vector for the renameHeaders function
+  
+  dt <- data.table(read.table("features.txt"))
+  features <- as.character(dt[[2]])
+  
+  ## Merge all of train and test data set into train and test data.tables
+    
+  test <- y_test %>%
+      merge(subject_test) %>%
+      merge(X_test) 
+    
+  train <- y_train %>%
+      merge(subject_train) %>%
+      merge(X_train)
+
+  
+  ## Merge train and test data.tables together into a single allData data.table 
+  
+  allData <- rbind(data = train, data = test)
+  
+  
+  ## Rename headers and activities
+  
+  allData <- renameHeaders(allData, features)
+  allData <- renameActivities(allData)
+  
+  
+  ## Summarize data and writes output file
+  
   summaryData <- summarizeData(allData)
-  setwd(wd)
   write.table(summaryData,"tidydata.txt")
+   
+  
+  ## Clean up
+  
+  setwd(wd)
+  if (clean == "Y" | clean == "y") {
+    prompt <- "Are you sure you want to delete the UCIData directory? (Y/N)"
+    clean <- readline(prompt)
+    
+    ## Case sensitive check for second approval of data removal
+    
+    if (clean == "Y") {
+      unlink("UCIData", recursive = TRUE)
+    }
+  }
+  
+  # Run test on output data.table to confirm output is still correct
+  
+  source("run_tests.R")
+  
 }
