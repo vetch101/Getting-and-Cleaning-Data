@@ -3,7 +3,7 @@ source("run_analysis.R")
 
 test.suite <- defineTestSuite("Data Table Output",
                               dirs = file.path("tests"),
-                              testFileRegexp = 'Test_Output.R')
+                              testFileRegexp = 'test_output.R')
 
 test.result <- runTestSuite(test.suite)
 

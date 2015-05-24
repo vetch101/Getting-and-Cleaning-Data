@@ -27,7 +27,7 @@ init <- function() {
 }
 
 
-## getFile function downloads file and extracts the data from the archive
+## getFile function downloads and extracts data from the archive
 
 getFile <- function() {
 
@@ -162,26 +162,21 @@ renameHeaders <- function(dt, x) {
 }
 
 
-## renameActivities function renames activities based on their description
+## renameActivities function renames activities based on the activities vector
 
-renameActivities <- function(dt) {
+renameActivities <- function(dt, x) {
   
-  ## Inputs: dt - data.table
+  ## Inputs: dt - data.table, x - character vector of activities
   ## Outputs: dt - modified data.table
   
   ## Order the data.table
   
   dt <- arrange(dt, Activity, Subject)
   
-  ## Create vector of activities names
-  
-  activities <- c("WALKING", "WALKING_UPSTAIRS", "WALKING_DOWNSTAIRS",
-                  "SITTING", "STANDING", "LAYING")
-  
-  ## Step through activities vector renaming Activity in data.table
+  ## Step through x vector renaming Activity in data.table
   
   for (i in 1:6) {
-    dt$Activity[dt$Activity == i] <- activities[i]
+    dt$Activity[dt$Activity == i] <- x[i]
   }
   
   ## Return modified data.table
@@ -264,12 +259,8 @@ runAnalysis <- function() {
     }
   }
   
-  ## Create the features character vector for the renameHeaders function
-  
-  dt <- data.table(read.table("features.txt"))
-  features <- as.character(dt[[2]])
-  
-  ## Merge all of train and test data set into train and test data.tables
+  ## Merge all of train and test data sets into separate train and test 
+  ## data.tables
     
   test <- y_test %>%
       merge(subject_test) %>%
@@ -285,21 +276,32 @@ runAnalysis <- function() {
   allData <- rbind(data = train, data = test)
   
   
+  ## Create the features character vector for the renameHeaders function
+  
+  dt <- data.table(read.table("features.txt"))
+  features <- as.character(dt[[2]])
+  
+  ## Create the activities character vector for the renameActivities function
+  
+  dt <- data.table(read.table("activity_labels.txt"))
+  activities <- as.character(dt[[2]])
+  
   ## Rename headers and activities
   
   allData <- renameHeaders(allData, features)
-  allData <- renameActivities(allData)
+  allData <- renameActivities(allData, activities)
   
   
   ## Summarize data and writes output file
   
   summaryData <- summarizeData(allData)
-  write.table(summaryData,"tidydata.txt")
+  
+  setwd(wd)
+  write.table(summaryData,"tidydata.txt", row.name=FALSE)
    
   
   ## Clean up
   
-  setwd(wd)
   if (clean == "Y" | clean == "y") {
     prompt <- "Are you sure you want to delete the UCIData directory? (Y/N)"
     clean <- readline(prompt)
@@ -313,6 +315,29 @@ runAnalysis <- function() {
   
   # Run test on output data.table to confirm output is still correct
   
-  source("run_tests.R")
+  test <- readline("Do you want to run the test? (Y/N)")
+  
+  if (test == "Y" | test == "y"){
+    source("run_tests.R")  
+  }
   
 }
+
+## readOutputTable function provides a simple tool for the reviewer to view the
+## final data.table
+
+readOutputTable <- function() {
+  
+  ## Outputs: Loads View on and returns data.table dt
+  
+  if(!file.exists("tidydata.txt")) {
+    print("Please set working directory to root folder")
+    stop()
+  }
+  dt <- data.table(read.table("tidydata.txt", header = TRUE))
+  
+  View(dt)
+  
+  return(dt)
+}
+  
