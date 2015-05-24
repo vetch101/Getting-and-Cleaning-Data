@@ -2,7 +2,7 @@
 
 ## Overview
 
-The summarized dataset is provided as a data.table called tidy_data.txt in the 
+The summarized dataset is provided as a data.table called tidydata.txt in the 
 root of the source code folder. 
 
 The reviewer can check the summarized table output by sourcing the script
@@ -27,10 +27,11 @@ The dataset is ordered by Activity and then by Subject (1 to 30). The original
 provider of the data collected values from the accelerometer and gyroscope 
 on 3-axial raw signals of X, Y and Z by time captured at a constant rate of 50 
 Hz. Data captured by time is denoted within the columns in the summarized 
-dataset as "Time.", with the body and gravity data denoted as "Body.", and 
-"Gravity.", respectively, while the X, Y and Z values has "X", "Y" and "Z" in 
+dataset as "Time", with the body and gravity data denoted as "Body", and 
+"Gravity", respectively, while the X, Y and Z values has "X", "Y" and "Z" in 
 the column name. The data captured from the accelerometer and the gyroscope is 
-denoted as "Accelerometer." and "Gyroscope.". 
+denoted as "Accelerometer" and "Gyroscope". As with all the following variable 
+names, the variable types are separated by periods (full stops).
 
 The values were filterd with a median filter, and a 3rd order low pass 
 Butterworth filter with a corner frequency of 20Hz to remove noise. The 
@@ -41,25 +42,25 @@ signals using another low pass Butterworth filter with a corner frequency of
 The body linear acceleration signals were used with angular velocity to obtain 
 Jerk signals. Also, the magnitude of these three dimensional signals were
 calculated using the Euclidean norm. Jerk and magnitude measurements 
-are denoted with "Jerk.", and "Magnitude.", respectively. 
+are denoted with "Jerk", and "Magnitude", respectively. 
 
 Finally, a Fast Fourier Transform was applied to some of these signals. These
-signals are denoted with "FFT." at the start of the column name.
+signals are denoted with "FFT" at the start of the column name.
 
 These data are combined to provide mean, weighted average of the frequency 
 components to obtain a mean frequency and standard deviation for some of these
-data, denoted by "mean.", "meanFreq." and "std." in the column name.
+data, denoted by "mean", "meanFreq" and "std" in the column name.
 
 Thus, the column names are of the form:
   
-  * Activity
+* Activity
 * Subject
-* Time. / FFT.
-* Body. / Gravity.
-* Accelerometer. / Gyroscope.
-* Jerk.
-* Magnitude.
-* mean. / meanFreq. / std.
+* Time / FFT
+* Body / Gravity
+* Accelerometer / Gyroscope
+* Jerk
+* Magnitude
+* mean / meanFreq / std
 * X / Y / Z
 
 The full list of variables is in the table below.

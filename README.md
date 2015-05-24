@@ -21,12 +21,12 @@ modifications of the code continue to output the same data table.
 
 ## Summarized Data Set
 
-The summarized dataset is provided as a data.table called tidy_data.txt in the 
+The summarized dataset is provided as a data.table called tidydata.txt in the 
 root of the source code folder. 
 
 The reviewer can check the summarized table output by sourcing the script
 run_analysis.R and executing readOutputTable(). This function reads the 
-tidy_data.txt file into a data.table, dt, outputs it to the RStudio environment,
+tidydata.txt file into a data.table, dt, outputs it to the RStudio environment,
 and returns it to the console or any assigned variable.
 
 The summarized dataset consists of 180 observations of 81 variables. 
@@ -59,7 +59,7 @@ runAnalysis steps are listed below:
 * Setup clean up to collect correct working directory and check if data should
 	be deleted after the script runs
 * Initialize the environment by calling init()
-* Step through UCIData directory and files to select files for merging
+* Step through UCI HAR Dataset directory and files to select files for merging
 * Set tablename to shortened filename (removing ".txt")
 * Read file to data.table and send to function tidyTable() to be tidied
 * Assign data.table to the appropriate name in the current environment
@@ -77,8 +77,8 @@ runAnalysis steps are listed below:
 * Execute summarizeData(dt) passing in allData and returning summaryData
 * Write summaryData data.table output file to tidy_data.txt
 * Clean up by returning to previous working directory
-* Check to see if the UCIData directory should be removed
-* Source("run_tests.R") to run tests on tidy_data.txt to test output is as 
+* Check to see if the UCI HAR Dataset directory should be removed
+* Source("run_tests.R") to run tests on tidydata.txt to test output is as 
 	expected
 
 **init()**
@@ -115,8 +115,8 @@ The readOutputTable function provides a simple tool for the reviewer to view the
 
 readOutputTable steps are listed below:
 
-* Check for tidy_data.txt file
-* Reads tidy_data.txt to a data.table, dt
+* Check for tidydata.txt file
+* Reads tidydata.txt to a data.table, dt
 * Views dt in RStudio
 * Returns dt
 
@@ -163,7 +163,7 @@ renameHeaders steps are listed below:
 
 * Step through vector x
 * Check whether feature is either mean or std measurement
-* Update first letter to either Time. or FFT. (Fast Fourier Transform(
+* Update first letter to either Time. or FFT. (Fast Fourier Transform)
 * Replace unclear terms in column headers
 * Tidy column name output by removing spurious hyphens and periods
 * Set headers of data.table to correct names

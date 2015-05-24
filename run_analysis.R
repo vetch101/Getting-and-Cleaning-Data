@@ -38,16 +38,9 @@ getFile <- function() {
     stop()
   }
   
-  ## Check for existence of UCIData directory - if not, create it
-  
-  if(!file.exists(file.path("UCIData"))) {
-    dir.create(file.path("UCIData"))
-  }
-  
   ## Check for UCIDataset.zip - if not, download it
   
-  filename <- file.path("UCIData", "UCIHARDataset.zip", 
-        collapse = "")
+  filename <- "UCIHARDataset.zip"
   
   if(!file.exists(filename)) {    
     fileUrl <- paste(c("https://d396qusza40orc.cloudfront.net",
@@ -57,14 +50,14 @@ getFile <- function() {
   
   ## Check if archive has been unzipped - if not, unzip
   
-  unzipped <- file.path("UCIData", "UCI HAR Dataset")
+  unzipped <- "UCI HAR Dataset"
   if(!file.exists(unzipped)) {
-    unzip(filename, exdir = file.path("UCIData"))
+    unzip(filename)
   }
   
   ## Set working directory to unzipped UCI HAR Dataset directory
   
-  setwd(file.path("UCIData", "UCI HAR Dataset"))
+  setwd(file.path("UCI HAR Dataset"))
   
 }
 
@@ -223,16 +216,16 @@ runAnalysis <- function() {
   ## Setup clean up
   
   wd <- getwd()
-  prompt <- "Delete UCIData directory after script runs? (Y/N)"
+  prompt <- "Delete UCI HAR Dataset directory after script runs? (Y/N)"
   clean <- readline(prompt)
   
   ## Initialize the environment
   
   init()
   
-  ## Step through UCIData directory and files to create data.tables for merging
-  ## Create X_train, X_test, y_train, y_test, subject_train, subject_test 
-  ## data.tables
+  ## Step through UCI HAR Dataset directory and files to create data.tables for 
+  ## merging. Create X_train, X_test, y_train, y_test, subject_train and 
+  ## subject_test data.tables
   
   dirs <- list.dirs(recursive = FALSE)
   
@@ -303,13 +296,13 @@ runAnalysis <- function() {
   ## Clean up
   
   if (clean == "Y" | clean == "y") {
-    prompt <- "Are you sure you want to delete the UCIData directory? (Y/N)"
+    prompt <- "Are you sure you want to delete UCI HAR Dataset directory? (Y/N)"
     clean <- readline(prompt)
     
     ## Case sensitive check for second approval of data removal
     
     if (clean == "Y") {
-      unlink("UCIData", recursive = TRUE)
+      unlink("UCI HAR Dataset", recursive = TRUE)
     }
   }
   
